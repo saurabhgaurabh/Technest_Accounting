@@ -53,4 +53,4 @@ $route['default_controller'] = 'welcome';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
-$route['api/v1/user'] = 'authController/registration';
+$route['api/add_user'] = 'authController/add_user';

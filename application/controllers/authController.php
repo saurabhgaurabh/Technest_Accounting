@@ -11,11 +11,11 @@ class AuthController extends CI_Controller {
     }
 
     public function add_user() {
-       $query = $this->db->get('users');
+       $query = $this->db->get_where('users', array('username' => $this->input->post('username')));
         if ($query->num_rows() > 0) {
             echo json_encode([
                 'status' => false,
-                'message' => 'User with this mobile number already exists.'
+                'message' => 'User already exists.'
             ]);
             return;
         }

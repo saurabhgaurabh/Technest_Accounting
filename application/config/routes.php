@@ -54,5 +54,5 @@ $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
 $route['api/add_user'] = 'authController/add_user'; // add_user is the controller name
-$route['api/category'] = 'productController/categories'; // category is the controller name
 $route['api/v1/customer']  = 'customerController/createCustomer';  // createCustomer is the controller name
+$route['api/category'] = 'productController/categories'; // category is the controller name

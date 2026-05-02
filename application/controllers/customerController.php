@@ -19,15 +19,12 @@ class customerController extends CI_Controller
             if ($exists->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Customer with this mobile number already exists.'
+                    'message' => 'Customer with the duplicate value already exists.'
                 ]);
                 return;
             }
-            // allow only specific fields to be inserted
-            // $allowed_fields = ['customer_name', 'mobile', 'email', 'address'];
-            // $data = array_intersect_key($data, array_flip($allowed_fields));
-
             $data = $this->input->post();
+            $customer_name = isset($data['customer_name']) ? $data['customer_name'] : 'Customer';
             //required fields validation
             $required_fields = ['customer_name', 'mobile', 'email', 'address', 'postal_code'];
 
@@ -43,8 +40,8 @@ class customerController extends CI_Controller
             //insert data into database
             if ($this->customerModel->insert_customer($data)) {
                 echo json_encode([
-                    'status' => 200,
-                    'message' => 'Customer Added Successfully.'
+                    'status' => true,
+                    'message' => "Customer ${customer_name} Added Successfully."
                 ]);
             } else {
                 echo json_encode([

@@ -24,7 +24,6 @@ class customerController extends CI_Controller
                 return;
             }
             $data = $this->input->post();
-            $customer_name = isset($data['customer_name']) ? $data['customer_name'] : 'Customer';
             //required fields validation
             $required_fields = ['customer_name', 'mobile', 'email', 'address', 'postal_code'];
 
@@ -37,6 +36,8 @@ class customerController extends CI_Controller
                     return;
                 }
             }
+            // to fetch the customer name in the response message
+            $customer_name = isset($data['customer_name']) ? $data['customer_name'] : 'Customer';
             //insert data into database
             if ($this->customerModel->insert_customer($data)) {
                 echo json_encode([

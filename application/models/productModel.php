@@ -6,6 +6,10 @@
         public function createCategory($data){
             return $this->db->insert('categories', $data);
         }
+
+        public function model_of_sub_Category($data){
+            return $this->db->insert('subcategories', $data);
+        }
         
     }
 ?>

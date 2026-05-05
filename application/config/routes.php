@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
 | -------------------------------------------------------------------------
@@ -57,3 +57,5 @@ $route['api/add_user'] = 'authController/add_user'; // add_user is the controlle
 $route['api/v1/customer']  = 'customerController/createCustomer';  // createCustomer is the controller name
 $route['api/category'] = 'productController/categories'; // category is the controller name
 $route['api/create-subcategory'] = 'productController/subCategory'; // subCategory is the controller name
+$route['api/create-items'] = 'productionController/createItems'; // items is the controller name
+

@@ -1,48 +1,89 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class AuthController extends CI_Controller {
+class AuthController extends CI_Controller
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->load->database();
         $this->load->model('authModel');
+        $this->load->helper('custom');
+        $this->load->library('email');
         header('Content-Type: application/json');
     }
 
-    public function add_user() {
-       $query = $this->db->get_where('users', array('username' => $this->input->post('username')));
-        if ($query->num_rows() > 0) {
-            echo json_encode([
-                'status' => false,
-                'message' => 'User already exists.'
-            ]);
-            return;
-        }
-        $username = $this->input->post('username');
-        $mobile = $this->input->post('mobile');
-        
-        if(empty($username) || empty($mobile)) {
-            echo json_encode([
-                'status' => false,
-                'message' => 'username & mobile are required'
-            ]);
-            return;
-        }
+    public function add_user()
+    {
+        try {
+            $data = $this->input->post();
+            $required_fields = ['username', 'mobile', 'email'];
 
-        $userdata = [ 'username' => $username, 'mobile' => $mobile ];
+            foreach ($required_fields as $field) {
+                if (empty($data[$field])) {
+                    echo json_encode([
+                        'status' => false,
+                        'message' => ucfirst(str_ireplace('_', ' ', $field)) . ' is required.'
+                    ]);
+                    return;
+                };
+            }
+            // check duplicate users/ values
+            $exists = $this->db->group_start()
+                ->where('username', $this->input->post('username'))
+                ->or_where('mobile', $this->input->post('mobile'))
+                ->group_end()->get('users');
 
-        if($this->authModel->insert_user($userdata)){
-            echo json_encode([
-                'status' => 200,
-                'message' => 'User Added Successfully.'
-            ]);
-        } else {
-            echo json_encode([
-                'status' => false,
-                'message' => 'Database Error: '
-            ]);
+            if ($exists->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'User already exists.'
+                ]);
+                return;
+            }
+
+            // generate otp and insert data into database
+
+            $newOtp = fourDigitCode();
+            // Send OTP email
+            if (!send_otp_email($data['email'], $newOtp)) {
+                // Get the instance to print the debugger
+                $CI = &get_instance();
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Failed to send OTP',
+                    'debug' => $CI->email->print_debugger() // This will tell you the exact SMTP error
+                ]);
+                return;
+            }
+            $userData =   [
+                'username' => $data['username'] ?? null,
+                'mobile' => $data['mobile'] ?? null,
+                'email' => $data['email'] ?? null,
+                'otp' => $newOtp
+            ];
+
+            $insert = $this->authModel->insert_user($userData);
+            if ($insert) {
+                echo json_encode([
+                    'status' => true,
+                    'message' => 'User created successfully.',
+                    'data' => [
+                        'username' => $data['username'] ?? null,
+                        'mobile' => $data['mobile'] ?? null,
+                        'email' => $data['email'] ?? null,
+                        'otp' => $newOtp
+                    ]
+                ]);
+            } else {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Failed to create user.',
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }
 }
-?>

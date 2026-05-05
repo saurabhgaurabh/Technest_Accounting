@@ -9,7 +9,7 @@ class ProductController extends CI_Controller
         parent::__construct();
         $this->load->database();
         $this->load->model('productModel');
-        $this->load->helper('custome');
+        $this->load->helper('custom');
         header('Content-Type: application/json');
     }
 
@@ -62,6 +62,7 @@ class ProductController extends CI_Controller
                 ]);
                 return;
             }
+
             $globalInputValue = $this->input->post();
             $required_fields = ['category_id', 'name', 'description'];
 
@@ -74,6 +75,7 @@ class ProductController extends CI_Controller
                     return;
                 }
             }
+
             // verify if the category_id exists in the categories table
             $categoryExists = $this->db->get_where('categories', array('category_id' => $globalInputValue['category_id']))->num_rows();
             if (!$categoryExists) {
@@ -110,6 +112,57 @@ class ProductController extends CI_Controller
                 echo json_encode([
                     'status' => false,
                     'message' => "Failed to Create Sub Category."
+                ]);
+            }
+        } catch (Exception $error) {
+            echo json_encode([
+                'status' => false,
+                'message' => 'An error occurred: ' . $error->getMessage()
+            ]);
+        };
+    }
+
+    public function createItems()
+    {
+        try {
+            $itemsData = $this->input->post();
+            $required_fields = ['item_name', 'item_code', 'category', 'description'];
+
+            // 1. Validation
+            foreach ($required_fields as $field) {
+                if (empty($itemsData[$field])) {
+                    echo json_encode([
+                        'status' => false,
+                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.'
+                    ]);
+                    return;
+                }
+            }
+
+            // 2. Check for duplicate Item Code 
+            $this->db->where('item_code', $itemsData['item_code']);
+            $exists = $this->db->get('items'); 
+
+            if ($exists->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Item code already exists.'
+                ]);
+                return;
+            }
+
+            // 3. Insert via Model
+            $itemName = $itemsData['item_name']; 
+
+            if ($this->productModel->model_of_create_items($itemsData)) {
+                echo json_encode([
+                    'status' => true,
+                    'message' => "Item '{$itemName}' created successfully."
+                ]);
+            } else {
+                echo json_encode([
+                    'status' => false,
+                    'message' => "Failed to create item '{$itemName}'."
                 ]);
             }
         } catch (Exception $error) {

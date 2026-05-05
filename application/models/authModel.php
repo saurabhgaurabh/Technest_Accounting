@@ -8,4 +8,14 @@ class AuthModel extends CI_Model
     {
         return $this->db->insert('users', $data);
     }
+
+    public function verify_otp($user_id, $email, $otp)
+    {
+        $query = $this->db->where('user_id', $user_id)
+            ->where('email', $email)
+            ->where('otp', $otp)
+            ->get('users');
+        return $query->num_rows() > 0;
+        
+    }
 }

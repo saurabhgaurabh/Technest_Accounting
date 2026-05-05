@@ -86,4 +86,39 @@ class AuthController extends CI_Controller
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }
+
+
+    public function verifyOTP(){
+        try{
+            $data = $this->input->post();
+            $required_fields = ['user_id', 'email', 'otp'];
+            foreach($required_fields as $field){
+                if(empty($data[$field])){
+                    echo json_encode([
+                        'status' => false,
+                        'message' => ucfirst(str_ireplace('_', ' ', $field)) . ' is required.'
+                    ]);
+                    return;
+                }
+
+                $isValid = $this->authModel->verify_otp($data['user_id'], $data['email'], $data['otp']);
+                if($isValid){
+                    $this->db->where('user_id', $data['user_id'])->update('users', ['flag' => 'verified']);
+                    echo json_encode([
+                        'status' => true,
+                        'message' => 'OTP verified successfully.'
+                    ]);
+                    return;
+                }else{
+                    echo json_encode([
+                        'status' => false,
+                        'message' => 'Invalid OTP.'
+                    ]);
+                    return;
+                }
+            }
+        }catch(Exception $e){
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
 }

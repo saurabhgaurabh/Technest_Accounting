@@ -53,7 +53,7 @@ class AuthController extends CI_Controller
                 echo json_encode([
                     'status' => false,
                     'message' => 'Failed to send OTP',
-                    'debug' => $CI->email->print_debugger() // This will tell you the exact SMTP error
+                    'debug' => $CI->email->print_debugger() 
                 ]);
                 return;
             }

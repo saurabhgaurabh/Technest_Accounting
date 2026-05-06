@@ -12,7 +12,8 @@
 	},
 	"require": {
 		"php": ">=5.4.8",
-		"phpmailer/phpmailer": "*"
+		"phpmailer/phpmailer": "*",
+		"firebase/php-jwt": "*"
 	},
 	"suggest": {
 		"paragonie/random_compat": "Provides better randomness in PHP 5.x"

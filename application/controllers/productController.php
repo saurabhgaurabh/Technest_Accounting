@@ -125,6 +125,14 @@ class ProductController extends CI_Controller
     public function createItems()
     {
         try {
+            $queryExists = $this->db->get_where('items', array('item_code' => $this->input->post('item_code')));
+            if($queryExists->num_rows() > 0){
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Item already exist in the database.'
+                ]);
+                return;
+            }
             $itemsData = $this->input->post();
             $required_fields = ['item_name', 'item_code', 'category', 'description'];
 
@@ -138,10 +146,9 @@ class ProductController extends CI_Controller
                     return;
                 }
             }
-
-            // 2. Check for duplicate Item Code 
-            $this->db->where('item_code', $itemsData['item_code']);
-            $exists = $this->db->get('items'); 
+           $itemCode = fourDigitCode();
+           $itemsData['item_code'] = $itemCode;
+            $exists = $this->db->get_where('items', array('item_code' => $itemsData['item_code']));
 
             if ($exists->num_rows() > 0) {
                 echo json_encode([
@@ -157,7 +164,7 @@ class ProductController extends CI_Controller
             if ($this->productModel->model_of_create_items($itemsData)) {
                 echo json_encode([
                     'status' => true,
-                    'message' => "Item '{$itemName}' created successfully."
+                    'message' => "Item '{$itemName}' created successfully." 
                 ]);
             } else {
                 echo json_encode([

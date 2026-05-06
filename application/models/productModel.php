@@ -11,7 +11,7 @@
             return $this->db->insert('subcategories', $data);
         }
 
-        public function Exception($data){
+        public function model_of_create_items($data){
             return $this->db->insert('items', $data);
         }
         

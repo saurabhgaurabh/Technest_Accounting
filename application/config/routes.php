@@ -56,10 +56,11 @@ $route['translate_uri_dashes'] = FALSE;
 // authentication api routes
 $route['api/add_user'] = 'authController/add_user'; // add_user is the controller name
 $route['api/verify-otp'] = 'authController/verifyOTP'; // verifyOTP is the controller name
+$route['api/login'] = 'authController/login'; // login is the controller name
 
 // production api routes
 $route['api/v1/customer']  = 'customerController/createCustomer';  // createCustomer is the controller name
 $route['api/category'] = 'productController/categories'; // category is the controller name
 $route['api/create-subcategory'] = 'productController/subCategory'; // subCategory is the controller name
-$route['api/create-items'] = 'productionController/createItems'; // items is the controller name
+$route['api/createItems'] = 'productController/createItems'; 
 

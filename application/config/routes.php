@@ -64,4 +64,5 @@ $route['api/category'] = 'productController/categories'; // category is the cont
 $route['api/create-subcategory'] = 'productController/subCategory'; // subCategory is the controller name
 $route['api/createItems'] = 'productController/createItems';  // + ID
 $route['api/purchaseItems'] = 'productController/purchaseItems';  // + ID
+$route['api/sellItems'] = 'productController/sellItems';  // + ID
 

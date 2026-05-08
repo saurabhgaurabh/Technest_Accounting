@@ -257,4 +257,62 @@ class ProductController extends CI_Controller
             ]);
         }
     }
+
+    public function sellItems(){
+        try{
+            $sellData = $this->input->post();
+            $required_fields = [ 'total_amount','mobile', 'postal_code' ];
+            foreach ($required_fields as $field) {
+                if (empty($sellData[$field])) {
+                    echo json_encode([
+                        'status' => false,
+                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.'
+                    ]);
+                    return;
+                }
+            }
+            $checkExists = $this->db->get_where('sales', array('user_id' => $sellData['user_id'], 'total_amount' => $sellData['total_amount']));
+            if($checkExists->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => "Sale with ID '{$sellData['user_id']}' already exists."
+                ]);
+                return;
+            }
+            if (empty($sellData['user_id'])) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'User ID is required.'
+                ]);
+                return;
+            }
+            $userCheck = $this->db->get_where('users', array('user_id'  => $sellData['user_id']));
+            if (!$userCheck->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid user_id. This user does not exist.'
+                ]);
+                return;
+            }
+            if($this->productModel->model_of_sell_items($sellData)){
+                echo json_encode([
+                    'status' => true,
+                    'message' => "Sale of '{$sellData['total_amount']}' successfully."
+                ]);
+                return;
+            } else {
+                echo json_encode([
+                    'status' => false,
+                    'message' => "Failed to record sale of '{$sellData['total_amount']}'."
+                ]);
+                return;
+            }
+
+        }catch(Exception $error){
+            echo json_encode([
+                'status' => false,
+                'message' => 'An error occurred: ' . $error->getMessage()
+            ]);
+        }
+    }
 }

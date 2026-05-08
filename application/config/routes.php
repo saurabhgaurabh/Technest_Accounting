@@ -59,8 +59,9 @@ $route['api/verify-otp'] = 'authController/verifyOTP'; // verifyOTP is the contr
 $route['api/login'] = 'authController/login'; // login is the controller name
 
 // production api routes
-$route['api/v1/customer']  = 'customerController/createCustomer';  // createCustomer is the controller name
+$route['api/v1/customer']  = 'customerController/createCustomer';  // + ID
 $route['api/category'] = 'productController/categories'; // category is the controller name
 $route['api/create-subcategory'] = 'productController/subCategory'; // subCategory is the controller name
-$route['api/createItems'] = 'productController/createItems'; 
+$route['api/createItems'] = 'productController/createItems';  // + ID
+$route['api/purchaseItems'] = 'productController/purchaseItems';  // + ID
 

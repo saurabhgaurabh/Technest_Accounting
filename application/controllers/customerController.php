@@ -8,14 +8,29 @@ class customerController extends CI_Controller
         parent::__construct();
         $this->load->database();
         $this->load->model('customerModel');
+        $this->load->helper('custom');
         header('Content-Type: application/json');
     }
 
     public function createCustomer()
     {
         try {
+            $data = $this->input->post();
+            if (empty($data['user_id'])) {
+                echo json_encode(['status' => false, 'message' => 'User ID is required.']);
+                return;
+            }
+            $userCheck = $this->db->get_where('users', array('user_id' => $data['user_id']))->row();
+
+            if (!$userCheck) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid user_id. This user does not exist.'
+                ]);
+                return;
+            }
             // check duplicate values
-            $exists = $this->db->get_where('customers', array('mobile' => $this->input->post('mobile')));
+            $exists = $this->db->get_where('customers', array('mobile' => $data['mobile']));
             if ($exists->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
@@ -23,7 +38,6 @@ class customerController extends CI_Controller
                 ]);
                 return;
             }
-            $data = $this->input->post();
             //required fields validation
             $required_fields = ['customer_name', 'mobile', 'email', 'address', 'postal_code'];
 
@@ -36,13 +50,15 @@ class customerController extends CI_Controller
                     return;
                 }
             }
-            // to fetch the customer name in the response message
-            $customer_name = isset($data['customer_name']) ? $data['customer_name'] : 'Customer';
+            $customerCode = fourDigitCode();
+            $data['customer_code'] = $customerCode;
+            $data['user_id'] = $userCheck->user_id;
+            $customer_name = $data['customer_name'];
             //insert data into database
             if ($this->customerModel->insert_customer($data)) {
                 echo json_encode([
                     'status' => true,
-                    'message' => "Customer ${customer_name} Added Successfully."
+                    'message' => "Customer '{$customer_name}' Added Successfully."
                 ]);
             } else {
                 echo json_encode([

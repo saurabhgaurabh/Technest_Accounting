@@ -125,16 +125,34 @@ class ProductController extends CI_Controller
     public function createItems()
     {
         try {
-            $queryExists = $this->db->get_where('items', array('item_code' => $this->input->post('item_code')));
-            if($queryExists->num_rows() > 0){
+
+            $itemsData = $this->input->post();
+            $required_fields = ['item_name', 'item_code', 'category', 'description'];
+
+            if (empty($itemsData['user_id'])) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'User ID is required.'
+                ]);
+                return;
+            }
+            $userCheck = $this->db->get_where('users', array('user_id' => $itemsData['user_id']))->row();
+            if (!$userCheck > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid user_id. This user does not exist.'
+                ]);
+                return;
+            }
+            $queryExists = $this->db->get_where('items', array('item_name' => $this->input->post('item_name')));
+            if ($queryExists->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
                     'message' => 'Item already exist in the database.'
                 ]);
                 return;
             }
-            $itemsData = $this->input->post();
-            $required_fields = ['item_name', 'item_code', 'category', 'description'];
+
 
             // 1. Validation
             foreach ($required_fields as $field) {
@@ -146,8 +164,8 @@ class ProductController extends CI_Controller
                     return;
                 }
             }
-           $itemCode = fourDigitCode();
-           $itemsData['item_code'] = $itemCode;
+            $itemCode = fourDigitCode();
+            $itemsData['item_code'] = $itemCode;
             $exists = $this->db->get_where('items', array('item_code' => $itemsData['item_code']));
 
             if ($exists->num_rows() > 0) {
@@ -159,18 +177,78 @@ class ProductController extends CI_Controller
             }
 
             // 3. Insert via Model
-            $itemName = $itemsData['item_name']; 
+            $itemName = $itemsData['item_name'];
 
             if ($this->productModel->model_of_create_items($itemsData)) {
                 echo json_encode([
                     'status' => true,
-                    'message' => "Item '{$itemName}' created successfully." 
+                    'message' => "Item '{$itemName}' created successfully."
                 ]);
             } else {
                 echo json_encode([
                     'status' => false,
                     'message' => "Failed to create item '{$itemName}'."
                 ]);
+            }
+        } catch (Exception $error) {
+            echo json_encode([
+                'status' => false,
+                'message' => 'An error occurred: ' . $error->getMessage()
+            ]);
+        }
+    }
+
+    public function purchaseItems()
+    {
+        try {
+
+            $purchaseData = $this->input->post();
+            $required_fields = ['product_name', 'mobile', 'address'];
+
+            foreach ($required_fields as $field) {
+                if (empty($purchaseData[$field])) {
+                    echo json_encode([
+                        'status' => false,
+                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.'
+                    ]);
+                    return;
+                }
+            }
+            if (empty($purchaseData['user_id'])) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'User ID is required.'
+                ]);
+                return;
+            }
+            $userCheck = $this->db->get_where('users', array('user_id'  => $purchaseData['user_id']));
+            if (!$userCheck->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid user_id. This user does not exist.'
+                ]);
+                return;
+            }
+            $checkExists = $this->db->get_where('purchases', array('product_name' => $purchaseData['product_name']));
+            if ($checkExists->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => "Purchase of '{$purchaseData['product_name']}' already exists."
+                ]);
+                return;
+            }
+            if ($this->productModel->model_of_purchase_items($purchaseData)) {
+                echo json_encode([
+                    'status' => true,
+                    'message' => "Purchase of '{$purchaseData['product_name']}' successfully."
+                ]);
+                return;
+            } else {
+                echo json_encode([
+                    'status' => false,
+                    'message' => "Failed to record purchase of '{$purchaseData['product_name']}'."
+                ]);
+                return;
             }
         } catch (Exception $error) {
             echo json_encode([

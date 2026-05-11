@@ -54,26 +54,27 @@ $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
 // authentication api routes
-$route['api/add_user'] = 'authController/add_user'; // add_user is the controller name
-$route['api/verify-otp'] = 'authController/verifyOTP'; // verifyOTP is the controller name
-$route['api/login'] = 'authController/login'; // login is the controller name
+$route['api/add_user'] = 'authController/add_user'; 
+$route['api/verify-otp'] = 'authController/verifyOTP'; 
+$route['api/login'] = 'authController/login'; 
 
 // production api routes
 $route['api/company'] = 'customerController/createCompany';
-$route['api/v1/parties']  = 'customerController/createParties';  // + ID
+$route['api/v1/parties']  = 'customerController/createParties'; 
+$route['api/item-group'] = 'productController/createItemGroup'; 
+$route['api/items'] = 'productController/Items'; 
 
-$route['api/createItems'] = 'productController/createItems';  // + ID
-$route['api/purchaseItems'] = 'productController/purchaseItems';  // + ID
-$route['api/sellItems'] = 'productController/sellItems';  // + ID
-
-
-
-
+$route['api/createItems'] = 'productController/createItems'; 
+$route['api/purchaseItems'] = 'productController/purchaseItems';  
+$route['api/sellItems'] = 'productController/sellItems';  
 
 
 
 
-$route['api/item-group'] = 'productController/createItemGroup'; // category is the controller name
-$route['api/items'] = 'productController/Items'; // subCategory is the controller name
+
+
+
+
+
 
 

@@ -28,7 +28,7 @@ class AuthController extends CI_Controller
                         'message' => ucfirst(str_ireplace('_', ' ', $field)) . ' is required.'
                     ]);
                     return;
-                };
+                }; 
             }
             // check duplicate users/ values
             $exists = $this->db->group_start()
@@ -106,7 +106,7 @@ class AuthController extends CI_Controller
 
                 $isValid = $this->authModel->verify_otp($data['user_id'], $data['email'], $data['otp']);
                 if ($isValid) {
-                    $this->db->where('user_id', $data['user_id'])->update('users', ['flag' => 'verified']);
+                    $this->db->where('user_id', $data['user_id'])->update('users', ['flag' => 1, 'status' => 1]);
                     echo json_encode([
                         'status' => true,
                         'message' => 'OTP verified successfully.'
@@ -152,10 +152,10 @@ class AuthController extends CI_Controller
                 return;
             }
 
-            $token = generate_jwt([
-                'user_id' => $user->user_id,
-                'email'   => $user->email
-            ]);
+            // $token = generate_jwt([
+            //     'user_id' => $user->user_id,
+            //     'email'   => $user->email
+            // ]);
             // ✅ Success response
             echo json_encode([
                 'status' => true,

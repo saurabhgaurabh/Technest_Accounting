@@ -17,6 +17,7 @@ class AuthModel extends CI_Model
             ->get('users');
         return $query->num_rows() > 0;
     }
+    
     public function get_user_by_email($email, $password = null)
     {
         $this->db->where('email', $email);

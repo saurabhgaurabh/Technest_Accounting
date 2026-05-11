@@ -60,11 +60,20 @@ $route['api/login'] = 'authController/login'; // login is the controller name
 
 // production api routes
 $route['api/company'] = 'customerController/createCompany';
+$route['api/v1/parties']  = 'customerController/createParties';  // + ID
 
-$route['api/v1/customer']  = 'customerController/createCustomer';  // + ID
-$route['api/category'] = 'productController/categories'; // category is the controller name
-$route['api/create-subcategory'] = 'productController/subCategory'; // subCategory is the controller name
 $route['api/createItems'] = 'productController/createItems';  // + ID
 $route['api/purchaseItems'] = 'productController/purchaseItems';  // + ID
 $route['api/sellItems'] = 'productController/sellItems';  // + ID
+
+
+
+
+
+
+
+
+$route['api/item-group'] = 'productController/createItemGroup'; // category is the controller name
+$route['api/create-subcategory'] = 'productController/subCategory'; // subCategory is the controller name
+
 

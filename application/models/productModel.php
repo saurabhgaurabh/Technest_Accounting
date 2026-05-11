@@ -3,8 +3,8 @@
 
     class ProductModel extends CI_Model {
 
-        public function createCategory($data){
-            return $this->db->insert('categories', $data);
+        public function createItemGroup($data){
+            return $this->db->insert('item_groups', $data);
         }
 
         public function model_of_sub_Category($data){

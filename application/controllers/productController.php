@@ -13,40 +13,60 @@ class ProductController extends CI_Controller
         header('Content-Type: application/json');
     }
 
-    public function categories()
+    public function createItemGroup()
     {
-        $query = $this->db->get_where('categories', array('name' => $this->input->post('name')));
+        $itemGroupData = $this->input->post();
+        $query = $this->db->get_where('item_groups', array('group_name' => $this->input->post('group_name')));
 
         if ($query->num_rows() > 0) {
             echo json_encode([
                 'status' => false,
-                'message' => 'Category already exist in the database.'
+                'message' => 'Group Name already exist in the database.'
             ]);
             return;
         }
-        $name = $this->input->post('name');
-        // $categoryCode = $this->input->post('category_code');
-        $categoryCode = fourDigitCode();
-        $description = $this->input->post('description');
 
-        if (!$name || !$categoryCode || !$description) {
+        if(empty($itemGroupData['company_id'])){
             echo json_encode([
                 'status' => false,
-                'message' => 'name, category_code and description are required'
+                'message' => 'Company ID is required.'
             ]);
             return;
         }
+        $checkCompany = $this->db->get_where('companies', array('company_id' => $itemGroupData['company_id']));
+        if($checkCompany->num_rows() <= 0){
+            echo json_encode([
+                'status' => false,
+                'message' => 'Invalid Company Id. This company does not exist.'
+            ]);
+            return; 
+        }
 
+       $required_fields = ['group_name'];
+
+        foreach($required_fields as $field){
+            if(empty($itemGroupData[$field])){
+                echo json_encode([
+                    'status' => 'false',
+                    'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.'
+                ]);
+                return;
+            }
+        }
+    
         $categoryData = [
-            'name' => $name,
-            'category_code' => $categoryCode,
-            'description' => $description
+            'group_name' => $itemGroupData['group_name'],
+            'company_id' => $itemGroupData['company_id'],
+            'description' => $itemGroupData['description']
         ];
 
-        if ($this->productModel->createCategory($categoryData)) {
-            echo json_encode(['status' => true, 'message' => "Category ${name} created successfully."]);
+        if ($this->productModel->createItemGroup($categoryData)) {
+            echo json_encode(['status' => true, 'message' => "Category '{$categoryData['group_name']} created successfully."]);
         } else {
-            echo json_encode(['status' => false, 'message' => "Failed to Create Category ${name}."]);
+            echo json_encode([
+                'status' => false,
+                'message' => "Failed to Create Category '{$categoryData['group_name']}."
+            ]);
         };
     }
 
@@ -258,10 +278,11 @@ class ProductController extends CI_Controller
         }
     }
 
-    public function sellItems(){
-        try{
+    public function sellItems()
+    {
+        try {
             $sellData = $this->input->post();
-            $required_fields = [ 'total_amount','mobile', 'postal_code' ];
+            $required_fields = ['total_amount', 'mobile', 'postal_code'];
             foreach ($required_fields as $field) {
                 if (empty($sellData[$field])) {
                     echo json_encode([
@@ -272,7 +293,7 @@ class ProductController extends CI_Controller
                 }
             }
             $checkExists = $this->db->get_where('sales', array('user_id' => $sellData['user_id'], 'total_amount' => $sellData['total_amount']));
-            if($checkExists->num_rows() > 0) {
+            if ($checkExists->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
                     'message' => "Sale with ID '{$sellData['user_id']}' already exists."
@@ -294,7 +315,7 @@ class ProductController extends CI_Controller
                 ]);
                 return;
             }
-            if($this->productModel->model_of_sell_items($sellData)){
+            if ($this->productModel->model_of_sell_items($sellData)) {
                 echo json_encode([
                     'status' => true,
                     'message' => "Sale of '{$sellData['total_amount']}' successfully."
@@ -307,8 +328,7 @@ class ProductController extends CI_Controller
                 ]);
                 return;
             }
-
-        }catch(Exception $error){
+        } catch (Exception $error) {
             echo json_encode([
                 'status' => false,
                 'message' => 'An error occurred: ' . $error->getMessage()

@@ -8,8 +8,8 @@ class customerModel extends CI_Model
         return $this->db->insert('companies', $data);
     }
 
-    public function insert_customer($data)
+    public function insert_parties($data)
     {
-        return $this->db->insert('customers', $data);
+        return $this->db->insert('parties', $data);
     }
 }

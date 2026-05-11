@@ -74,6 +74,6 @@ $route['api/sellItems'] = 'productController/sellItems';  // + ID
 
 
 $route['api/item-group'] = 'productController/createItemGroup'; // category is the controller name
-$route['api/create-subcategory'] = 'productController/subCategory'; // subCategory is the controller name
+$route['api/items'] = 'productController/Items'; // subCategory is the controller name
 
 

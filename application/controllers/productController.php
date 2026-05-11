@@ -70,68 +70,64 @@ class ProductController extends CI_Controller
         };
     }
 
-    public function subCategory()
+    public function Items()
     {
         try {
-            // check duplicate values 
-            $exists = $this->db->get_where('subcategories', array('name' => $this->input->post('name')));
-            if ($exists->num_rows() > 0) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'Sub Category already exists & Duplicate values are not allowed.'
-                ]);
-                return;
-            }
-
-            $globalInputValue = $this->input->post();
-            $required_fields = ['category_id', 'name', 'description'];
-
-            foreach ($required_fields as $field) {
-                if (empty($globalInputValue[$field])) {
+           $itemData = $this->input->post();
+           $required_fields = ['item_name', 'sku', 'item_type', 'min_stock'];
+           foreach($required_fields as $field){
+                if(empty($itemData[$field])){
                     echo json_encode([
                         'status' => false,
-                        'message' => ucfirst($field) . 'is required.'
+                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
                     ]);
                     return;
                 }
             }
-
-            // verify if the category_id exists in the categories table
-            $categoryExists = $this->db->get_where('categories', array('category_id' => $globalInputValue['category_id']))->num_rows();
-            if (!$categoryExists) {
+            $checkExists = $this->db->get_where('items', array('item_name' => $itemData['item_name']));
+            if($checkExists->num_rows () > 0){
                 echo json_encode([
                     'status' => false,
-                    'message' => 'The selected Category ID does not exist.'
+                    'message' => 'Item already exist in the database.'
                 ]);
                 return;
             }
-
-            // check subcategory already exists or not
-            $duplicateCheck = $this->db->get_where('subcategories', [
-                'name' => $globalInputValue['name'],
-                'category_id' => $globalInputValue['category_id']
-            ]);
-
-            if ($duplicateCheck->num_rows() > 0) {
+            if (empty($itemData['company_id'])) {
                 echo json_encode([
                     'status' => false,
-                    'message' => "Sub-category '{$data['name']}' already exists under {$categoryExists->name}."
+                    'message' => 'Company ID is required.'
                 ]);
                 return;
             }
-
-            // create variable to print the name in the response message
-            $categoryName = isset($globalInputValue['name']) ? $globalInputValue['name'] : 'Sub Category';
-            // load model
-            if ($this->productModel->model_of_sub_Category($globalInputValue)) {
+            $checkCompany = $this->db->get_where('companies', array('company_id' => $itemData['company_id']));
+            if ($checkCompany->num_rows() <= 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid Company Id. This company does not exist.'
+                ]);
+                return;
+            }
+            
+            $itemsValues = [
+                'item_name' => $itemData['item_name'] ?? null,
+                'sku' => $itemData['sku'] ?? null,
+                'item_type' => $itemData['item_type'] ?? null,
+                'hsn_code' => $itemData['hsn_code'] ?? null,
+                'sac_code' => $itemData['sac_code'] ?? null,
+                'gst_percent' => $itemData['gst_percent'] ?? null,
+                'min_stock' => $itemData['min_stock'] ?? null,
+                'company_id' => $itemData['company_id'] ?? null,
+                'group_id' => $itemData['group_id'] ?? null,
+            ];
+            if($this->productModel->model_of_createItems($itemsValues)){
                 echo json_encode([
                     'status' => true,
-                    'message' => "Sub Category ${categoryName} Created Successfully."
+                    'message' => "Item '{$itemData['item_name']}' created successfully."
                 ]);
-            } else {
+            }else{
                 echo json_encode([
                     'status' => false,
-                    'message' => "Failed to Create Sub Category."
+                    'message' => "Failed to create item '{$itemData['item_name']}"
                 ]);
             }
         } catch (Exception $error) {

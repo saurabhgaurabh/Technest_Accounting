@@ -7,8 +7,8 @@
             return $this->db->insert('item_groups', $data);
         }
 
-        public function model_of_sub_Category($data){
-            return $this->db->insert('subcategories', $data);
+        public function model_of_createItems($data){
+            return $this->db->insert('items', $data);
         }
 
         public function model_of_create_items($data){

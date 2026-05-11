@@ -1,4 +1,7 @@
 <?php
+
+use PhpParser\Node\Stmt\TryCatch;
+
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class customerController extends CI_Controller
@@ -12,6 +15,55 @@ class customerController extends CI_Controller
         header('Content-Type: application/json');
     }
 
+    public function createCompany(){
+        Try{
+            $companyData = $this->input->post();
+            $required_fields = ['company_name', 'gstin', 'state'];
+
+            foreach ($required_fields as $field){
+                if(empty($companyData[$field])){
+                    echo json_encode([
+                        'status' => false,
+                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.'
+                    ]);
+                    return;
+                }
+            }
+            // check duplicate company
+            $exists = $this->db->get_where('companies', array('gstin' => $companyData['gstin']));
+            if($exists->num_rows() > 0){
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Company with the same GSTIN already exists.'
+                ]);
+                return;
+            }
+            $companyInsertion = [
+                'company_name' => $companyData['company_name'],
+                'gstin' => $companyData['gstin'],
+                'state' => $companyData['state']
+            ];
+
+            if($this->customerModel->insert_company($companyInsertion)){
+                echo json_encode([
+                    'status' => true,
+                    'message' => "Company '{$companyData['company_name']}' Added Successfully."
+                ]);
+            }else{
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Database Error.'
+                ]);
+            }
+
+        }catch(Exception $error){
+            echo json_encode([
+                'status' => false,
+                'message' => 'An error occurred: ' . $error->getMessage()
+            ]);
+        }
+    }
+
     public function createCustomer()
     {
         try {
@@ -23,7 +75,7 @@ class customerController extends CI_Controller
             $userCheck = $this->db->get_where('users', array('user_id' => $data['user_id']))->row();
 
             if (!$userCheck) {
-                echo json_encode([
+                echo json_encode([ 
                     'status' => false,
                     'message' => 'Invalid user_id. This user does not exist.'
                 ]);

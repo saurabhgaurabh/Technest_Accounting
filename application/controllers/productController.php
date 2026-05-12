@@ -299,6 +299,97 @@ class ProductController extends CI_Controller
         }
     }
 
+    public function sales()
+    {
+        try {
+            $salesData = $this->input->post();
+            $required_fields = ['invoice_no', 'sale_date', 'subtotal', 'grand_total', 'status'];
+            foreach ($required_fields as $field) {
+                if (empty($salesData[$field])) {
+                    echo json_encode([
+                        'status' => false,
+                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.'
+                    ]);
+                    return;
+                }
+            }
+            if (empty($salesData['company_id'])) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Company ID is required.'
+                ]);
+                return;
+            }
+            $companyIdCheck = $this->db->get_where('companies', array('company_id' => $salesData['company_id']));
+            if (!$companyIdCheck->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Company Id do not match.'
+                ]);
+                return;
+            }
+            if (empty($salesData['customer_id'])) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Customer ID is required.'
+                ]);
+                return;
+            }
+            $customerIdCheck = $this->db->get_where('parties', array('party_id' => $salesData['customer_id']));
+            if (!$customerIdCheck->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Customer Id do not match.'
+                ]);
+                return;
+            }
+            if (empty($salesData['user_id'])) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'User ID is required.'
+                ]);
+                return;
+            }
+            $userIdCheck = $this->db->get_where('users', array('user_id' => $salesData['user_id']));
+            if (!$userIdCheck->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'User Id do not match.'
+                ]);
+                return;
+            }
+            $insertSales = [
+                'company_id' => $salesData['company_id'],
+                'customer_id' => $salesData['customer_id'],
+                'invoice_no' => $salesData['invoice_no'],
+                'sale_date' => $salesData['sale_date'],
+                'subtotal' => $salesData['subtotal'],
+                'grand_total' => $salesData['grand_total'],
+                'status' => $salesData['status'],
+                'created_by' => $salesData['user_id']
+            ];
+
+            if ($this->productModel->model_of_sales($insertSales)) {
+                echo json_encode([
+                    'status' => true,
+                    'message' => "Sale of '{$salesData['invoice_no']}' successfully."
+                ]);
+                return;
+            } else {
+                echo json_encode([
+                    'status' => false,
+                    'message' => "Failed to record sale of '{$salesData['invoice_no']}'"
+                ]);
+                return;
+            }
+        } catch (Exception $error) {
+            echo json_encode([
+                'status' => false,
+                'message' => 'An error occurred: ' . $error->getMessage()
+            ]);
+        }
+    }
+
     public function sellItems()
     {
         try {

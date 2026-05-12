@@ -63,10 +63,11 @@ $route['api/company'] = 'customerController/createCompany';
 $route['api/v1/parties']  = 'customerController/createParties'; 
 $route['api/item-group'] = 'productController/createItemGroup';  // category api
 $route['api/items'] = 'productController/Items';                 // sub category api
-$route['api/purchase'] = 'productController/purchase';  
-
-
+$route['api/purchase'] = 'productController/purchase';
 $route['api/purchaseItems'] = 'productController/purchaseItems';  
+$route['api/v1/sales'] = 'productController/sales';
+
+
 $route['api/sellItems'] = 'productController/sellItems';  
 
 

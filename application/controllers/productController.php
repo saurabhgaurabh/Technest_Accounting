@@ -221,7 +221,7 @@ class ProductController extends CI_Controller
         try {
 
             $purchaseData = $this->input->post();
-            $required_fields = ['product_name', 'mobile', 'address'];
+            $required_fields = ['purchase_id', 'item_id', 'quantity', 'rate', 'total'];
 
             foreach ($required_fields as $field) {
                 if (empty($purchaseData[$field])) {
@@ -232,33 +232,56 @@ class ProductController extends CI_Controller
                     return;
                 }
             }
-            if (empty($purchaseData['user_id'])) {
+            // $checkDuplicate = $this->db->get_where('purchase_items', 
+            // array('purchase_id' => $purchaseData['purchase_id'], 'item_id' => $purchaseData['item_id']));
+            // if ($checkDuplicate->num_rows() > 0) {
+            //     echo json_encode([
+            //         'status' => false,
+            //         'message' => ""
+            //     ]);
+            //     return;
+            // }
+            if (empty($purchaseData['purchase_id'])) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'User ID is required.'
+                    'message' => 'Purchase ID is required.'
                 ]);
                 return;
             }
-            $userCheck = $this->db->get_where('users', array('user_id'  => $purchaseData['user_id']));
-            if (!$userCheck->num_rows() > 0) {
+            $purchaseCheck = $this->db->get_where('purchases', array('purchase_id'  => $purchaseData['purchase_id']));
+            if (!$purchaseCheck->num_rows() < 0) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Invalid user_id. This user does not exist.'
+                    'message' => 'Invalid Purchase ID.'
                 ]);
                 return;
             }
-            $checkExists = $this->db->get_where('purchases', array('product_name' => $purchaseData['product_name']));
-            if ($checkExists->num_rows() > 0) {
+            if (empty($purchaseData['item_id'])) {
                 echo json_encode([
                     'status' => false,
-                    'message' => "Purchase of '{$purchaseData['product_name']}' already exists."
+                    'message' => 'Item ID is required.'
                 ]);
                 return;
             }
-            if ($this->productModel->model_of_purchase_items($purchaseData)) {
+            $itemCheck = $this->db->get_where('items', array('item_id'  => $purchaseData['item_id']));
+            if (!$itemCheck->num_rows() < 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid Item ID. This user does not exist.'
+                ]);
+                return;
+            }
+            $insertPurchaseItems = [
+                'purchase_id' => $purchaseData['purchase_id'],
+                'item_id' => $purchaseData['item_id'],
+                'quantity' => $purchaseData['quantity'],
+                'rate' => $purchaseData['rate'],
+                'total' => $purchaseData['total']
+            ];
+            if ($this->productModel->model_of_purchase_items($insertPurchaseItems)) {
                 echo json_encode([
                     'status' => true,
-                    'message' => "Purchase of '{$purchaseData['product_name']}' successfully."
+                    'message' => "Purchase Items '{$insertPurchaseItems['quantity']}' successfully."
                 ]);
                 return;
             } else {

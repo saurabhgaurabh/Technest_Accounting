@@ -15,7 +15,7 @@
             return $this->db->insert('purchases', $data);
         }
         public function model_of_purchase_items($purchaseData){
-            return $this->db->insert('purchases', $purchaseData);
+            return $this->db->insert('purchase_items', $purchaseData);
         }
 
         public function model_of_sell_items($sellData){

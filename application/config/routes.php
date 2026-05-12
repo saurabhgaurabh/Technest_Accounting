@@ -61,10 +61,11 @@ $route['api/login'] = 'authController/login';
 // production api routes
 $route['api/company'] = 'customerController/createCompany';
 $route['api/v1/parties']  = 'customerController/createParties'; 
-$route['api/item-group'] = 'productController/createItemGroup'; 
-$route['api/items'] = 'productController/Items'; 
+$route['api/item-group'] = 'productController/createItemGroup';  // category api
+$route['api/items'] = 'productController/Items';                 // sub category api
+$route['api/purchase'] = 'productController/purchase';  
 
-$route['api/createItems'] = 'productController/createItems'; 
+
 $route['api/purchaseItems'] = 'productController/purchaseItems';  
 $route['api/sellItems'] = 'productController/sellItems';  
 

@@ -10,11 +10,10 @@
         public function model_of_createItems($data){
             return $this->db->insert('items', $data);
         }
-
-        public function model_of_create_items($data){
-            return $this->db->insert('items', $data);
-        }
         
+        public function model_of_purchase($data){
+            return $this->db->insert('purchases', $data);
+        }
         public function model_of_purchase_items($purchaseData){
             return $this->db->insert('purchases', $purchaseData);
         }

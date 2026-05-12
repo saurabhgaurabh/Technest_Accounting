@@ -26,7 +26,7 @@ class ProductController extends CI_Controller
             return;
         }
 
-        if(empty($itemGroupData['company_id'])){
+        if (empty($itemGroupData['company_id'])) {
             echo json_encode([
                 'status' => false,
                 'message' => 'Company ID is required.'
@@ -34,18 +34,18 @@ class ProductController extends CI_Controller
             return;
         }
         $checkCompany = $this->db->get_where('companies', array('company_id' => $itemGroupData['company_id']));
-        if($checkCompany->num_rows() <= 0){
+        if ($checkCompany->num_rows() <= 0) {
             echo json_encode([
                 'status' => false,
                 'message' => 'Invalid Company Id. This company does not exist.'
             ]);
-            return; 
+            return;
         }
 
-       $required_fields = ['group_name'];
+        $required_fields = ['group_name'];
 
-        foreach($required_fields as $field){
-            if(empty($itemGroupData[$field])){
+        foreach ($required_fields as $field) {
+            if (empty($itemGroupData[$field])) {
                 echo json_encode([
                     'status' => 'false',
                     'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.'
@@ -53,7 +53,7 @@ class ProductController extends CI_Controller
                 return;
             }
         }
-    
+
         $categoryData = [
             'group_name' => $itemGroupData['group_name'],
             'company_id' => $itemGroupData['company_id'],
@@ -73,10 +73,10 @@ class ProductController extends CI_Controller
     public function Items()
     {
         try {
-           $itemData = $this->input->post();
-           $required_fields = ['item_name', 'sku', 'item_type', 'min_stock'];
-           foreach($required_fields as $field){
-                if(empty($itemData[$field])){
+            $itemData = $this->input->post();
+            $required_fields = ['item_name', 'sku', 'item_type', 'min_stock'];
+            foreach ($required_fields as $field) {
+                if (empty($itemData[$field])) {
                     echo json_encode([
                         'status' => false,
                         'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
@@ -85,7 +85,7 @@ class ProductController extends CI_Controller
                 }
             }
             $checkExists = $this->db->get_where('items', array('item_name' => $itemData['item_name']));
-            if($checkExists->num_rows () > 0){
+            if ($checkExists->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
                     'message' => 'Item already exist in the database.'
@@ -107,7 +107,7 @@ class ProductController extends CI_Controller
                 ]);
                 return;
             }
-            
+
             $itemsValues = [
                 'item_name' => $itemData['item_name'] ?? null,
                 'sku' => $itemData['sku'] ?? null,
@@ -119,12 +119,12 @@ class ProductController extends CI_Controller
                 'company_id' => $itemData['company_id'] ?? null,
                 'group_id' => $itemData['group_id'] ?? null,
             ];
-            if($this->productModel->model_of_createItems($itemsValues)){
+            if ($this->productModel->model_of_createItems($itemsValues)) {
                 echo json_encode([
                     'status' => true,
                     'message' => "Item '{$itemData['item_name']}' created successfully."
                 ]);
-            }else{
+            } else {
                 echo json_encode([
                     'status' => false,
                     'message' => "Failed to create item '{$itemData['item_name']}"
@@ -138,41 +138,13 @@ class ProductController extends CI_Controller
         };
     }
 
-    public function createItems()
+    public function purchase()
     {
         try {
-
-            $itemsData = $this->input->post();
-            $required_fields = ['item_name', 'item_code', 'category', 'description'];
-
-            if (empty($itemsData['user_id'])) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'User ID is required.'
-                ]);
-                return;
-            }
-            $userCheck = $this->db->get_where('users', array('user_id' => $itemsData['user_id']))->row();
-            if (!$userCheck > 0) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'Invalid user_id. This user does not exist.'
-                ]);
-                return;
-            }
-            $queryExists = $this->db->get_where('items', array('item_name' => $this->input->post('item_name')));
-            if ($queryExists->num_rows() > 0) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'Item already exist in the database.'
-                ]);
-                return;
-            }
-
-
-            // 1. Validation
+            $purchaseData = $this->input->post();
+            $required_fields = ['bill_no'];
             foreach ($required_fields as $field) {
-                if (empty($itemsData[$field])) {
+                if (empty($purchaseData[$field])) {
                     echo json_encode([
                         'status' => false,
                         'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.'
@@ -180,31 +152,61 @@ class ProductController extends CI_Controller
                     return;
                 }
             }
-            $itemCode = fourDigitCode();
-            $itemsData['item_code'] = $itemCode;
-            $exists = $this->db->get_where('items', array('item_code' => $itemsData['item_code']));
-
-            if ($exists->num_rows() > 0) {
+            $checkExists = $this->db->get_where('purchases', array('bill_no' => $purchaseData['bill_no']));
+            if ($checkExists->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Item code already exists.'
+                    'message' => "Purchase with ID '{$purchaseData['bill_no']}' already exists."
                 ]);
                 return;
             }
-
-            // 3. Insert via Model
-            $itemName = $itemsData['item_name'];
-
-            if ($this->productModel->model_of_create_items($itemsData)) {
-                echo json_encode([
-                    'status' => true,
-                    'message' => "Item '{$itemName}' created successfully."
-                ]);
-            } else {
+            if (empty($purchaseData['company_id'])) {
                 echo json_encode([
                     'status' => false,
-                    'message' => "Failed to create item '{$itemName}'."
+                    'message' => 'Company ID is required.'
                 ]);
+                return;
+            }
+            $checkCompany = $this->db->get_where('companies', array('company_id' => $purchaseData['company_id']));
+            if ($checkCompany->num_rows() <= 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid Company Id. This company does not exist.'
+                ]);
+                return;
+            }
+            if (empty($purchaseData['vendor_id'])) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Vender ID is required.'
+                ]);
+                return;
+            }
+            $checkVender = $this->db->get_where('parties', array('party_id' => $purchaseData['vendor_id']));
+            if ($checkVender->num_rows() <= 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid Vender'
+                ]);
+                return;
+            }
+            $insertPurchase = [
+                'bill_no' => $purchaseData['bill_no'],
+                'company_id' => $purchaseData['company_id'],
+                'vendor_id' => $purchaseData['vendor_id'],
+                'purchase_date' => $purchaseData['purchase_date'],
+                'subtotal' => $purchaseData['subtotal'],
+                'tax_total' => $purchaseData['tax_total'],
+                'grand_total' => $purchaseData['grand_total'],
+                'payment_status' => $purchaseData['payment_status']
+            ];
+
+            if ($this->productModel->model_of_purchase($insertPurchase)) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => "Purchase of Bill No.'{$purchaseData['bill_no']}' successfully."
+                ]);
+                return;
             }
         } catch (Exception $error) {
             echo json_encode([

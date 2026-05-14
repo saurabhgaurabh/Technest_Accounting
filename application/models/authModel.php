@@ -17,16 +17,12 @@ class AuthModel extends CI_Model
             ->get('users');
         return $query->num_rows() > 0;
     }
-    
-    public function get_user_by_email($email, $password = null)
+
+    public function get_user_by_email($email)
     {
-        $this->db->where('email', $email);
-
-        if (!is_null($password)) {
-            $this->db->where('password', $password);
-        }
-
         return $this->db
+            ->where('email', $email)
+            ->limit(1)
             ->get('users')
             ->row();
     }

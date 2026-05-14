@@ -26,18 +26,18 @@ class ProductController extends CI_Controller
             return;
         }
 
-        if (empty($itemGroupData['company_id'])) {
+        if (empty($itemGroupData['user_id'])) {
             echo json_encode([
                 'status' => false,
-                'message' => 'Company ID is required.'
+                'message' => 'User ID is required.'
             ]);
             return;
         }
-        $checkCompany = $this->db->get_where('companies', array('company_id' => $itemGroupData['company_id']));
+        $checkCompany = $this->db->get_where('users', array('user_id' => $itemGroupData['user_id']));
         if ($checkCompany->num_rows() <= 0) {
             echo json_encode([
                 'status' => false,
-                'message' => 'Invalid Company Id. This company does not exist.'
+                'message' => 'Invalid User Id. This company does not exist.'
             ]);
             return;
         }
@@ -56,7 +56,7 @@ class ProductController extends CI_Controller
 
         $categoryData = [
             'group_name' => $itemGroupData['group_name'],
-            'company_id' => $itemGroupData['company_id'],
+            'user_id' => $itemGroupData['user_id'],
             'description' => $itemGroupData['description']
         ];
 
@@ -92,18 +92,18 @@ class ProductController extends CI_Controller
                 ]);
                 return;
             }
-            if (empty($itemData['company_id'])) {
+            if (empty($itemData['user_id'])) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Company ID is required.'
+                    'message' => 'User ID is required.'
                 ]);
                 return;
             }
-            $checkCompany = $this->db->get_where('companies', array('company_id' => $itemData['company_id']));
+            $checkCompany = $this->db->get_where('users', array('user_id' => $itemData['user_id']));
             if ($checkCompany->num_rows() <= 0) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Invalid Company Id. This company does not exist.'
+                    'message' => 'Invalid User Id. This company does not exist.'
                 ]);
                 return;
             }
@@ -116,7 +116,7 @@ class ProductController extends CI_Controller
                 'sac_code' => $itemData['sac_code'] ?? null,
                 'gst_percent' => $itemData['gst_percent'] ?? null,
                 'min_stock' => $itemData['min_stock'] ?? null,
-                'company_id' => $itemData['company_id'] ?? null,
+                'user_id' => $itemData['user_id'] ?? null,
                 'group_id' => $itemData['group_id'] ?? null,
             ];
             if ($this->productModel->model_of_createItems($itemsValues)) {
@@ -160,18 +160,18 @@ class ProductController extends CI_Controller
                 ]);
                 return;
             }
-            if (empty($purchaseData['company_id'])) {
+            if (empty($purchaseData['user_id'])) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Company ID is required.'
+                    'message' => 'User ID is required.'
                 ]);
                 return;
             }
-            $checkCompany = $this->db->get_where('companies', array('company_id' => $purchaseData['company_id']));
+            $checkCompany = $this->db->get_where('users', array('user_id' => $purchaseData['user_id']));
             if ($checkCompany->num_rows() <= 0) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Invalid Company Id. This company does not exist.'
+                    'message' => 'Invalid User Id. This company does not exist.'
                 ]);
                 return;
             }
@@ -192,7 +192,7 @@ class ProductController extends CI_Controller
             }
             $insertPurchase = [
                 'bill_no' => $purchaseData['bill_no'],
-                'company_id' => $purchaseData['company_id'],
+                'user_id' => $purchaseData['user_id'],
                 'vendor_id' => $purchaseData['vendor_id'],
                 'purchase_date' => $purchaseData['purchase_date'],
                 'subtotal' => $purchaseData['subtotal'],
@@ -303,7 +303,7 @@ class ProductController extends CI_Controller
     {
         try {
             $salesData = $this->input->post();
-            $required_fields = ['invoice_no', 'sale_date', 'subtotal', 'grand_total', 'status'];
+            $required_fields = ['invoice_no', 'grand_total',];
             foreach ($required_fields as $field) {
                 if (empty($salesData[$field])) {
                     echo json_encode([
@@ -313,18 +313,18 @@ class ProductController extends CI_Controller
                     return;
                 }
             }
-            if (empty($salesData['company_id'])) {
+            if (empty($salesData['user_id'])) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Company ID is required.'
+                    'message' => 'User ID is required.'
                 ]);
                 return;
             }
-            $companyIdCheck = $this->db->get_where('companies', array('company_id' => $salesData['company_id']));
+            $companyIdCheck = $this->db->get_where('users', array('user_id' => $salesData['user_id']));
             if (!$companyIdCheck->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Company Id do not match.'
+                    'message' => 'User Id do not match.'
                 ]);
                 return;
             }
@@ -335,7 +335,7 @@ class ProductController extends CI_Controller
                 ]);
                 return;
             }
-            $customerIdCheck = $this->db->get_where('parties', array('party_id' => $salesData['customer_id']));
+            $customerIdCheck = $this->db->get_where('customers', array('id' => $salesData['customer_id']));
             if (!$customerIdCheck->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
@@ -343,36 +343,22 @@ class ProductController extends CI_Controller
                 ]);
                 return;
             }
-            if (empty($salesData['user_id'])) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'User ID is required.'
-                ]);
-                return;
-            }
-            $userIdCheck = $this->db->get_where('users', array('user_id' => $salesData['user_id']));
-            if (!$userIdCheck->num_rows() > 0) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'User Id do not match.'
-                ]);
-                return;
-            }
+           
             $insertSales = [
-                'company_id' => $salesData['company_id'],
+                'user_id' => $salesData['user_id'],
                 'customer_id' => $salesData['customer_id'],
                 'invoice_no' => $salesData['invoice_no'],
-                'sale_date' => $salesData['sale_date'],
+                'sold_at' => date('Y-m-d H:i:s'),
                 'subtotal' => $salesData['subtotal'],
                 'grand_total' => $salesData['grand_total'],
-                'status' => $salesData['status'],
+                // 'status' => $salesData['status'],
                 'created_by' => $salesData['user_id']
             ];
 
             if ($this->productModel->model_of_sales($insertSales)) {
                 echo json_encode([
                     'status' => true,
-                    'message' => "Sale of '{$salesData['invoice_no']}' successfully."
+                    'message' => "Sales for invoice no '{$salesData['invoice_no']}'created successfully."
                 ]);
                 return;
             } else {

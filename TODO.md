@@ -1,9 +1,6 @@
-# Fix OTP Email Sending Task
+# TODO
+- [x] Inspect authentication flow and identify why JWT token is not returned.
+- [x] Update `application/controllers/authController.php` login() to generate JWT token and return it in response.
+- [ ] Verify by hitting `POST /api/v1/login` and confirming `token` field exists.
 
-## Steps:
-- [x] 1. Create/update TODO.md
-- [x] 2. Edit custom_helper.php: Fix SMTP config (host, port, crypto), replace echo debug with log_message
-- [ ] 3. Optionally edit email.php config
-- [ ] 4. Test email sending via curl POST to auth/add_user
-- [ ] 5. Complete task
 

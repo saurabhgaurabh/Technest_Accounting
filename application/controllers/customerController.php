@@ -82,7 +82,7 @@ class customerController extends CI_Controller
         }
     }
 
-    public function createParties()
+    public function createVender()
     {
         try {
             $data = $this->input->post();
@@ -95,36 +95,22 @@ class customerController extends CI_Controller
             if (!$userCheck) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Invalid user_id. This user does not exist.'
+                    'message' => 'Invalid User Id. This user does not exist.'
                 ]);
                 return;
             }
-            if (empty($data['company_id'])) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'Company ID is required.'
-                ]);
-                return;
-            }
-            $checkCompany = $this->db->get_where('companies', array('company_id' => $data['company_id']));
-            if ($checkCompany->num_rows() <= 0) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'Invalid Company Id. This company does not exist.'
-                ]);
-                return;
-            }
+
             // check duplicate values
-            $exists = $this->db->get_where('parties', array('name' => $data['name']));
+            $exists = $this->db->get_where('vender', array('name' => $data['name']));
             if ($exists->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Party/Client with the duplicate value already exists.'
+                    'message' => 'Vender already exists.'
                 ]);
                 return;
             }
             //required fields validation
-            $required_fields = ['party_type', 'name', 'mobile', 'email', 'state', 'address'];
+            $required_fields = ['name', 'mobile', 'email', 'address', 'state'];
 
             foreach ($required_fields as $field) {
                 if (empty($data[$field])) {
@@ -136,10 +122,69 @@ class customerController extends CI_Controller
                 }
             }
             $data['user_id'] = $userCheck->user_id;
-            if ($this->customerModel->insert_parties($data)) {
+            if ($this->customerModel->insert_vender($data)) {
                 echo json_encode([
                     'status' => true,
-                    'message' => "Party/Client '{$data['name']}' Added Successfully."
+                    'message' => "Vender '{$data['name']}' Added Successfully."
+                ]);
+            } else {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Database Error.'
+                ]);
+            }
+        } catch (Exception $error) {
+            echo json_encode([
+                'status' => false,
+                'message' => 'An error occurred: ' . $error->getMessage()
+            ]);
+        }
+    }
+
+    public function createCustomer()
+    {
+        try {
+            $data = $this->input->post();
+            if (empty($data['user_id'])) {
+                echo json_encode(['status' => false, 'message' => 'User ID is required.']);
+                return;
+            }
+            $userCheck = $this->db->get_where('users', array('user_id' => $data['user_id']))->row();
+
+            if (!$userCheck) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid User Id. This user does not exist.'
+                ]);
+                return;
+            }
+
+            // check duplicate values
+            $exists = $this->db->get_where('customers', array('name' => $data['name']));
+            if ($exists->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => "Customer '{$data['name']}' already exists."
+                ]);
+                return;
+            }
+            //required fields validation
+            $required_fields = ['name', 'mobile', 'email', 'address', 'state'];
+
+            foreach ($required_fields as $field) {
+                if (empty($data[$field])) {
+                    echo json_encode([
+                        'status' => false,
+                        'message' => ucfirst($field) . ' is required.'
+                    ]);
+                    return;
+                }
+            }
+            $data['user_id'] = $userCheck->user_id;
+            if ($this->customerModel->insert_customer($data)) {
+                echo json_encode([
+                    'status' => true,
+                    'message' => "Customer '{$data['name']}' Added Successfully."
                 ]);
             } else {
                 echo json_encode([

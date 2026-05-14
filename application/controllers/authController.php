@@ -28,7 +28,7 @@ class AuthController extends CI_Controller
                         'message' => ucfirst(str_ireplace('_', ' ', $field)) . ' is required.'
                     ]);
                     return;
-                }; 
+                };
             }
             // check duplicate users/ values
             $exists = $this->db->group_start()
@@ -128,21 +128,27 @@ class AuthController extends CI_Controller
     public function login()
     {
         try {
+            $data = json_decode(file_get_contents('php://input'), true);
 
-            $data = $this->input->post();
-
-            // ✅ Required fields
-            if (empty($data['email']) || empty($data['password'])) {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'Email and password required'
-                ]);
-                return;
+            if (empty($data)) {
+                $data = $this->input->post();
             }
 
-            // 🔍 Get user (email + password)
-            $user = $this->authModel->get_user_by_email($data['email'], $data['password']);
+            $required_fields = ['email', 'password'];
 
+            foreach ($required_fields as $field) {
+                if (empty($data[$field])) {
+                    echo json_encode([
+                        'status' => false,
+                        'message' => ucfirst($field) . ' is required.'
+                    ]);
+                    return;
+                }
+            }
+
+            $email = strtolower(trim($data['email']));
+
+            $user = $this->authModel->get_user_by_email($email);
 
             if (!$user) {
                 echo json_encode([
@@ -152,15 +158,18 @@ class AuthController extends CI_Controller
                 return;
             }
 
-            // $token = generate_jwt([
-            //     'user_id' => $user->user_id,
-            //     'email'   => $user->email
-            // ]);
-            // ✅ Success response
+            $password = $this->db->get_where('users', array('password' => $data['password']));
+            if (!$password->num_rows() > 0) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid password'
+                ]);
+                return;
+            }
+
             echo json_encode([
                 'status' => true,
                 'message' => 'Login successful',
-                'token' => $token,
                 'data' => [
                     'user_id' => $user->user_id,
                     'username' => $user->username,

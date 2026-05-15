@@ -72,6 +72,8 @@ $route['api/purchaseItems'] = 'productController/purchaseItems';
 $route['api/sellItems'] = 'productController/sellItems';  
 
 
+// GET api's
+$route['api/v1/vender']['get']  = 'customerGetController/getVender'; 
 
 
 

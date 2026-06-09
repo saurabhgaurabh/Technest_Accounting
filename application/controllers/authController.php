@@ -3,7 +3,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class AuthController extends CI_Controller
 {
-
     public function __construct()
     {
         parent::__construct();
@@ -11,6 +10,7 @@ class AuthController extends CI_Controller
         $this->load->model('authModel');
         $this->load->helper('custom');
         $this->load->library('email');
+        $this->load->helper('url');
         $this->load->helper('jwt');
         header('Content-Type: application/json');
     }
@@ -21,6 +21,7 @@ class AuthController extends CI_Controller
             $data = $this->input->post();
             $required_fields = ['username', 'mobile', 'email', 'password'];
 
+            // 1. Validate all required fields
             foreach ($required_fields as $field) {
                 if (empty($data[$field])) {
                     echo json_encode([
@@ -28,28 +29,29 @@ class AuthController extends CI_Controller
                         'message' => ucfirst(str_ireplace('_', ' ', $field)) . ' is required.'
                     ]);
                     return;
-                };
+                }
             }
-            // check duplicate users/ values
+
+            // 2. Check duplicate users (username, mobile, or email)
             $exists = $this->db->group_start()
-                ->where('username', $this->input->post('username'))
-                ->or_where('mobile', $this->input->post('mobile'))
+                ->where('username', $data['username'])
+                ->or_where('mobile', $data['mobile'])
+                ->or_where('email', $data['email'])
                 ->group_end()->get('users');
 
             if ($exists->num_rows() > 0) {
                 echo json_encode([
                     'status' => false,
-                    'message' => 'User already exists.'
+                    'message' => 'User already exists with this username, mobile, or email.'
                 ]);
                 return;
             }
 
-            // generate otp and insert data into database
-
+            // 3. Generate OTP
             $newOtp = fourDigitCode();
+
             // Send OTP email
             if (!send_otp_email($data['email'], $newOtp)) {
-                // Get the instance to print the debugger
                 $CI = &get_instance();
                 echo json_encode([
                     'status' => false,
@@ -58,7 +60,10 @@ class AuthController extends CI_Controller
                 ]);
                 return;
             }
-            $userData =   [
+
+            // Hash the password if possible (highly recommended in production)
+            // Example: 'password' => password_hash($data['password'], PASSWORD_BCRYPT)
+            $userData = [
                 'username' => $data['username'] ?? null,
                 'mobile' => $data['mobile'] ?? null,
                 'email' => $data['email'] ?? null,
@@ -75,7 +80,6 @@ class AuthController extends CI_Controller
                         'username' => $data['username'] ?? null,
                         'mobile' => $data['mobile'] ?? null,
                         'email' => $data['email'] ?? null,
-                        'password' => $data['password'] ?? null,
                         'otp' => $newOtp
                     ]
                 ]);
@@ -95,6 +99,8 @@ class AuthController extends CI_Controller
         try {
             $data = $this->input->post();
             $required_fields = ['user_id', 'email', 'otp'];
+
+            // Validate all required fields first
             foreach ($required_fields as $field) {
                 if (empty($data[$field])) {
                     echo json_encode([
@@ -103,22 +109,21 @@ class AuthController extends CI_Controller
                     ]);
                     return;
                 }
+            }
 
-                $isValid = $this->authModel->verify_otp($data['user_id'], $data['email'], $data['otp']);
-                if ($isValid) {
-                    $this->db->where('user_id', $data['user_id'])->update('users', ['flag' => 1, 'status' => 1]);
-                    echo json_encode([
-                        'status' => true,
-                        'message' => 'OTP verified successfully.'
-                    ]);
-                    return;
-                } else {
-                    echo json_encode([
-                        'status' => false,
-                        'message' => 'Invalid OTP.'
-                    ]);
-                    return;
-                }
+            // Verify the OTP after completing validation
+            $isValid = $this->authModel->verify_otp($data['user_id'], $data['email'], $data['otp']);
+            if ($isValid) {
+                $this->db->where('user_id', $data['user_id'])->update('users', ['flag' => 1, 'status' => 1]);
+                echo json_encode([
+                    'status' => true,
+                    'message' => 'OTP verified successfully.'
+                ]);
+            } else {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Invalid OTP.'
+                ]);
             }
         } catch (Exception $e) {
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
@@ -129,10 +134,11 @@ class AuthController extends CI_Controller
     {
         try {
             $data = json_decode(file_get_contents('php://input'), true);
-
+            // throw new Exception('data', json_encode($data));
             if (empty($data)) {
                 $data = $this->input->post();
             }
+
 
             $required_fields = ['email', 'password'];
 
@@ -147,7 +153,6 @@ class AuthController extends CI_Controller
             }
 
             $email = strtolower(trim($data['email']));
-
             $user = $this->authModel->get_user_by_email($email);
 
             if (!$user) {
@@ -158,8 +163,8 @@ class AuthController extends CI_Controller
                 return;
             }
 
-            $password = $this->db->get_where('users', array('password' => $data['password']));
-            if (!$password->num_rows() > 0) {
+            // Match user's password (If using plain text)
+            if ($user->password !== $data['password']) {
                 echo json_encode([
                     'status' => false,
                     'message' => 'Invalid password'
@@ -167,9 +172,17 @@ class AuthController extends CI_Controller
                 return;
             }
 
+            // Generate JWT Token
+            $jwt = test_token([
+                'user_id' => $user->user_id,
+                'email' => $user->email,
+                'username' => $user->username
+            ]);
+
             echo json_encode([
                 'status' => true,
                 'message' => 'Login successful',
+                'token' => $jwt,
                 'data' => [
                     'user_id' => $user->user_id,
                     'username' => $user->username,
@@ -180,7 +193,7 @@ class AuthController extends CI_Controller
         } catch (Exception $e) {
             echo json_encode([
                 'status' => false,
-                'message' => $e->getMessage()
+                'message' => 'JWT Error: ' . $e->getMessage()
             ]);
         }
     }
